@@ -1,5 +1,6 @@
 package www.com.springboot_iv.api;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
@@ -18,6 +19,7 @@ import www.com.springboot_iv.dao.DepartmentDAO;
 import www.com.springboot_iv.dto.CreateDepartmentDTO;
 import www.com.springboot_iv.dto.UpdateDepartmentDTO;
 import www.com.springboot_iv.entity.Department;
+import www.com.springboot_iv.entity.Employee;
 
 @RestController
 public class DepartmentAPI {
@@ -52,7 +54,8 @@ public class DepartmentAPI {
 		if (!departmentOptional.isPresent()) {
 			return new ResponseEntity<>("{ \"message\": \"Id is not found\"}", HttpStatus.NOT_FOUND);
 		}
-		if (department.getEmployees().size() > 0) {
+		Optional<List<Employee>> employeesOptional = Optional.ofNullable(department.getEmployees());
+		if (employeesOptional.isPresent() ) {
 			return new ResponseEntity<>("{ \"message\": \"This department has employees\"}",
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}

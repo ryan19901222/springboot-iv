@@ -1,14 +1,6 @@
 package www.com.springboot_iv.api;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import www.com.springboot_iv.component.EmployeeSpecification;
 import www.com.springboot_iv.dao.EmployeeDAO;
 import www.com.springboot_iv.dto.CreateEmployeeDTO;
 import www.com.springboot_iv.dto.UpdateEmployeeDTO;
-import www.com.springboot_iv.entity.Department;
 import www.com.springboot_iv.entity.Employee;
 
 @RestController
@@ -36,6 +28,9 @@ public class EmployeeAPI {
 
 	@Autowired
 	private EmployeeDAO employeeDao;
+
+	@Autowired
+	private EmployeeSpecification employeeSpecification;
 
 	@RequestMapping(value = "/createEmployee", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public @ResponseBody ResponseEntity<Object> createEmployee(@RequestBody CreateEmployeeDTO createEmployeeDTO) {
@@ -69,36 +64,9 @@ public class EmployeeAPI {
 			@RequestParam(value = "employeeAge", required = false) Integer employeeAge,
 			@RequestParam(value = "departmentName", required = false) String departmentName,
 			@RequestParam(value = "pageNum", required = false) Integer pageNum) {
-		Optional<Integer> employeeIdOptional = Optional.ofNullable(employeeId);
-		Optional<String> employeeNameOptional = Optional.ofNullable(employeeName);
-		Optional<Integer> employeeAgeOptional = Optional.ofNullable(employeeAge);
-		Optional<String> departmentNameOptional = Optional.ofNullable(departmentName);
-		Specification<Employee> specification = new Specification<Employee>() {
-			public Predicate toPredicate(Root<Employee> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-				List<Predicate> predicatesList = new ArrayList<>();
-				if (employeeIdOptional.isPresent()) {
-					Path<Integer> idPath = root.get("id");
-					predicatesList.add(cb.equal(idPath, employeeId));
-				}
-				if (employeeNameOptional.isPresent()) {
-					Path<String> namePath = root.get("name");
-					predicatesList.add(cb.equal(namePath, employeeName));
-				}
-				if (employeeAgeOptional.isPresent()) {
-					Path<Integer> agePath = root.get("age");
-					predicatesList.add(cb.equal(agePath, employeeAge));
-				}
-				if (departmentNameOptional.isPresent()) {
-					Path<Department> departmentPath = root.get("department");
-					Path<String> departmentNamePath = departmentPath.get("name");
-					predicatesList.add(cb.equal(departmentNamePath, departmentName));
-				}
-				Predicate[] predicates = new Predicate[predicatesList.size()];
-				Predicate predicate = cb.and(predicatesList.toArray(predicates));
-				query.where(predicate);
-				return null;
-			}
-		};
+		
+		Specification<Employee> specification = employeeSpecification
+				.queryByIdAndNameAndAgeAndDepartmentName(employeeId, employeeName, employeeAge, departmentName);
 		// 判斷pageNum是否為null，如為null給予pageNum初始值1
 		Optional<Integer> pageNumOptional = Optional.ofNullable(pageNum);
 		pageNum = pageNumOptional.orElse(1);
